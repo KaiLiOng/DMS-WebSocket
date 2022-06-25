@@ -1,9 +1,15 @@
-/*********
-  Rui Santos
-  Complete project details at https://RandomNerdTutorials.com/esp32-websocket-server-arduino/
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
-*********/
+/***********************************************************************************************************************
+ * Created by :
+ * Rui Santos
+ * 
+ * Edited by :
+ * Ong Kai Li
+ * 25 June 2022
+ * Project: Driver Monitoring System Test System
+ * 
+ * 
+ **********************************************************************************************************************/
+
 
 // Import required libraries
 #include <WiFi.h>
@@ -20,8 +26,17 @@ const char* password = "MEFm6ndc4PAbRA6Q";
 
 bool ledSet1State = 0;
 bool ledSet2State = 0;
+bool ledSet3State = 0;
+bool ledSetOffState = 0;
+
+bool threeLED = 0;
+bool sixLED = 0;
+bool twelveLED = 0;
+bool offLED = 0;
+
 const int ledPinSet1 = 2;
-const int ledPinSet2 = 5;
+const int ledPinSet2 = 4;
+const int ledPinSet3 = 5;
 
 
 // Create AsyncWebServer object on port 80
@@ -32,6 +47,8 @@ AsyncWebSocket ws("/ws");
 void notifyClients() {
   ws.textAll(String(ledSet1State));
   ws.textAll(String(ledSet2State));
+  ws.textAll(String(ledSet3State));
+  ws.textAll(String(ledSetOffState));
 }
 
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
@@ -39,13 +56,52 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
     data[len] = 0;
     if (strcmp((char*)data, "toggle1") == 0) {
-      ledSet1State = !ledSet1State;
-      notifyClients();
+      threeLED = 1;
+      ledSet1State = 1;
+      ledSet2State = 0;
+      ledSet3State = 0;
     }else if (strcmp((char*)data, "toggle2") == 0){
-      ledSet2State = !ledSet2State;
-      notifyClients();
-    
+      sixLED = 1;
+      ledSet1State = 1;
+      ledSet2State = 1;
+      ledSet3State = 0;
+    }else if (strcmp((char*)data, "toggle3") == 0){
+      twelveLED = 1;
+      ledSet1State = 1;
+      ledSet2State = 1;
+      ledSet3State = 1;
+    }else if (strcmp((char*)data, "toggleOFF") == 0){
+      offLED = 1;
+      ledSet1State = 0;
+      ledSet2State = 0;
+      ledSet3State = 0;
     }
+
+//    if (threeLED == 1){
+//  
+//  Serial.println("Enter 3LED");
+//  }else if (sixLED == 1){
+////    ledSet1State = !ledSet1State;
+////    ledSet2State = !ledSet2State;
+////    ledSet3State = 0;
+//  digitalWrite(ledPinSet1, 1);
+//  digitalWrite(ledPinSet2, 1);
+//  digitalWrite(ledPinSet3, 0);
+//  Serial.println("Enter 6LED");
+//  }else if (twelveLED == 1){
+////    ledSet1State = !ledSet1State;
+////    ledSet2State = !ledSet2State;
+////    ledSet3State = !ledSet3State;
+//  digitalWrite(ledPinSet1, 1);
+//  digitalWrite(ledPinSet2, 1);
+//  digitalWrite(ledPinSet3, 1);
+//  Serial.println("Enter 12LED");
+//  }else if (offLED == 1){
+//  digitalWrite(ledPinSet1, LOW);
+//  digitalWrite(ledPinSet2, LOW);
+//  digitalWrite(ledPinSet3, LOW);
+//  Serial.println("Enter offLED");
+//  }
   }
 }
 
@@ -93,6 +149,8 @@ void setup(){
   digitalWrite(ledPinSet1, LOW);
   pinMode(ledPinSet2, OUTPUT);
   digitalWrite(ledPinSet2, LOW);
+  pinMode(ledPinSet3, OUTPUT);
+  digitalWrite(ledPinSet3, LOW);
   
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
@@ -119,4 +177,6 @@ void loop() {
   ws.cleanupClients();
   digitalWrite(ledPinSet1, ledSet1State);
   digitalWrite(ledPinSet2, ledSet2State);
+  digitalWrite(ledPinSet3, ledSet3State);
+
 }
