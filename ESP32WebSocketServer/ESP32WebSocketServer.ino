@@ -53,6 +53,7 @@ int stepCount = 0;
 const int HallSensor = 5;
 const int LED = 18;
 bool HomingDone = 0;
+bool MoveDone = 1;
 
 bool Connected = 0;
 
@@ -127,7 +128,8 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       String StepperValue = text_received.substring(7);
       Serial.println(StepperValue.toInt());
       stepCount = 50 * StepperValue.toInt();
-      myStepper.step(stepCount);
+      MoveDone = 0;
+      //myStepper.step(stepCount);  
     }
   }
 }
@@ -245,11 +247,20 @@ void loop() {
   digitalWrite(ledPinSet2, ledSet2State);
   digitalWrite(ledPinSet3, ledSet3State);
   digitalWrite(LED, !digitalRead(HallSensor));
-  while(Connected == 1 && HomingDone == 0 && digitalRead(HallSensor) == 1){
-        myStepper.step(-100);
+  //Serial.println(digitalRead(HallSensor));
+  while(Connected == 1 && HomingDone == 0 && digitalRead(HallSensor) == 1)
+  {
+        myStepper.step(-10);
         if(digitalRead(HallSensor) == 0){
           HomingDone = 1;
         }     
-   }   
+  }
+   
+  while(Connected == 1 && HomingDone == 1 && MoveDone == 0)
+  {
+        myStepper.step(stepCount);  
+        MoveDone = 1;
+  }
+    
 
 }
